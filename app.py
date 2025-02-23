@@ -1,70 +1,158 @@
-from flask import Flask, render_template, redirect, url_for, request
-from flask_sqlalchemy import SQLAlchemy
-from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-
-app = Flask(__name__)
-app.config['SECRET_KEY'] = 'your_secret_key_here'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
-db = SQLAlchemy(app)
-login_manager = LoginManager(app)
-login_manager.login_view = 'login'
-
-# Model de usuário
-class User(UserMixin, db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(150), nullable=False)
-
-# Carregar usuário
-@login_manager.user_loader
-def load_user(user_id):
-    return User.query.get(int(user_id))
-
-# Rota para a página inicial
-@app.route('/')
-@login_required
-def index():
-    return render_template('index.html')
-
-# Rota de login
-@app.route('/login', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        user = User.query.filter_by(username=username).first()
-
-        if user and user.password == password:
-            login_user(user)
-            return redirect(url_for('index'))
-        else:
-            return 'Login inválido'
-
-    return render_template('login.html')
-
-# Rota de registro
-@app.route('/register', methods=['GET', 'POST'])
-def register():
-    if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
-        new_user = User(username=username, password=password)
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página Inicial</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            transition: background-color 0.3s, color 0.3s;
+        }
         
-        db.session.add(new_user)
-        db.session.commit()
-        return redirect(url_for('login'))
+        .black-theme {
+            background-color: #000;
+            color: white;
+        }
+        
+        .purple-theme {
+            background-color: #6A0DAD;
+            color: white;
+        }
 
-    return render_template('register.html')
+        .navbar {
+            background-color: #333;
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-# Rota de logout
-@app.route('/logout')
-@login_required
-def logout():
-    logout_user()
-    return redirect(url_for('login'))
+        .profile-menu {
+            position: relative;
+            cursor: pointer;
+        }
 
-# Criar as tabelas no banco de dados dentro do contexto da aplicação
-if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()  # Cria as tabelas no banco de dados
-    app.run(debug=True, host='0.0.0.0', port=8000)
+        .profile-menu img {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+        }
+
+        .dropdown {
+            display: none;
+            position: absolute;
+            top: 40px;
+            right: 0;
+            background-color: #444;
+            padding: 10px;
+            border-radius: 5px;
+            width: 150px;
+            box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2);
+        }
+
+        .dropdown a {
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown a:hover {
+            background-color: #555;
+        }
+
+        .product {
+            background-color: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px;
+        }
+
+        .btn {
+            display: inline-block;
+            background-color: #ff4500;
+            color: white;
+            padding: 10px;
+            text-decoration: none;
+            border-radius: 5px;
+        }
+
+        .btn:hover {
+            background-color: #ff6347;
+        }
+    </style>
+</head>
+<body class="black-theme">
+
+    <div class="navbar">
+        <div>DONO: GALEGO</div>
+        <div class="profile-menu" onclick="toggleDropdown()">
+            <img src="https://via.placeholder.com/30" alt="Perfil">
+            <div class="dropdown" id="dropdownMenu">
+                <a href="{{ url_for('logout') }}">Sair</a>
+                <a href="javascript:void(0);" onclick="toggleTheme()">Trocar Tema</a>
+            </div>
+        </div>
+    </div>
+
+    <h1>Bem-vindo à Loja de Bots</h1>
+
+    <div class="product">
+        <h2>Bot de Venda</h2>
+        <p>Este bot realiza vendas de forma semi automática no seu servidor.</p>
+        <a href="https://discord.gg/tBcfB5j3Yf" class="btn">Comprar</a>
+    </div>
+
+    <div class="product">
+        <h2>Bot de Moderação</h2>
+        <p>Este bot ajuda na moderação do seu servidor, com várias funcionalidades.</p>
+        <a href="https://discord.gg/tBcfB5j3Yf" class="btn">Comprar</a>
+    </div>
+
+    <div class="product">
+        <h2>Bot de Ticket</h2>
+        <p>Gerencie tickets e suporte no seu servidor com esse bot.</p>
+        <a href="https://discord.gg/tBcfB5j3Yf" class="btn">Comprar</a>
+    </div>
+
+    <div class="product">
+        <h2>Clone de Server</h2>
+        <p>Clone um servidor mandando o link para o adm.</p>
+        <a href="https://discord.gg/tBcfB5j3Yf" class="btn">Comprar</a>
+    </div>
+
+    <div class="product">
+        <h2>Nitro Gift</h2>
+        <p>Compre Nitro Gift para você ou amigos.</p>
+        <a href="https://discord.gg/tBcfB5j3Yf" class="btn">Comprar</a>
+    </div>
+
+    <script>
+        function toggleDropdown() {
+            var dropdown = document.getElementById('dropdownMenu');
+            dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+        }
+
+        function toggleTheme() {
+            var body = document.body;
+            if (body.classList.contains('black-theme')) {
+                body.classList.remove('black-theme');
+                body.classList.add('purple-theme');
+            } else {
+                body.classList.remove('purple-theme');
+                body.classList.add('black-theme');
+            }
+        }
+
+        window.onclick = function(event) {
+            if (!event.target.matches('.profile-menu, .profile-menu *')) {
+                var dropdown = document.getElementById('dropdownMenu');
+                if (dropdown.style.display === 'block') {
+                    dropdown.style.display = 'none';
+                }
+            }
+        }
+    </script>
+</body>
+</html>
