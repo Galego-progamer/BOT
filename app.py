@@ -86,7 +86,7 @@
 <body class="black-theme">
 
     <div class="navbar">
-        <div>DESENVOLVEDOR: GALEGO</div>
+        <div>CRIADO POR: GALEGO</div>
         <div class="profile-menu" onclick="toggleDropdown()">
             <img src="https://via.placeholder.com/30" alt="Perfil">
             <div class="dropdown" id="dropdownMenu">
